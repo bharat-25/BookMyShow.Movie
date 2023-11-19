@@ -1,35 +1,43 @@
-// import { Injectable } from '@nestjs/common';
-// import axios from 'axios';
-// import { Kafka, Producer, RecordMetadata } from 'kafkajs';
+import { Injectable } from '@nestjs/common';
 
-// @Injectable()
-// export class KafkaService {
-//   private producer: Producer;
+import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+import { InjectModel } from '@nestjs/mongoose';
+import { Movie } from '../schema/movie.schema';
+import { Model } from 'mongoose';
+import { CreateMovieDto } from '../dto/create-movie.dto';
 
-//   constructor() {
-//     this.producer = new Kafka({
-//       clientId: 'movies-service',
-//       brokers: ['localhost:9092'], // Update with your Kafka broker(s) information
-//     }).producer();
-//   }
-
-//   async sendNotification(topic: string, message: string): Promise<RecordMetadata[]> {
-//     try {
-//         const { data: userEmails } = await axios.get('http://user-service-api/getAllUserEmails');
-//         const topicPromises = userEmails.map(async (email: string) => {
-//           await this.producer.connect();
-//           const result = await this.producer.send({
-//             topic: topic + '-' + email,
-//             messages: [{ value: message }],
-//           });
-//           await this.producer.disconnect();
-//           return result;
-//         });
-  
-//         return Promise.all(topicPromises);
-//       } catch (error) {
-//         console.error('Error fetching user email addresses:', error.message);
-//         throw error;
-//       }
-//     }
-// }
+@Injectable()
+export class KafkaService {
+    @Client({
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'user',
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'user-consumer'
+          }
+        }
+      })
+      client: ClientKafka;
+    
+      async onModuleInit() {
+        this.client.subscribeToResponseOf('new-movie-topic');
+        await this.client.connect();
+      }
+      constructor(@InjectModel('Movie') private movieModel: Model<Movie>) {}
+    
+      async createMovie(createMovieDto: CreateMovieDto) {
+        const createdMovie = new this.movieModel(createMovieDto);
+        this.client.send('new-movie-topic', { createdMovie }).subscribe(
+          (response) => {
+            console.log('Kafka message sent successfully:', response);
+          },
+          (error) => {
+            console.error('Error sending Kafka message:', error);
+          }
+        );
+        return createdMovie.save();
+      }
+    }
