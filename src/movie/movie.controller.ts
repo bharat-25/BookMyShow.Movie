@@ -1,5 +1,6 @@
 import { Controller,Get , Post, Put, Delete, Body, Param, HttpStatus, Res, Query, ValidationPipe} from '@nestjs/common';
 import { MovieService } from './movie.service';
+import {KafkaService} from './kafka/kafka.service'
 import { Movie } from './schema/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -7,7 +8,8 @@ import { MovieSearchDto } from './dto/movie-search.dto';
 
 @Controller('movie')
 export class MovieController {
-    constructor(private readonly movieService: MovieService) {}
+    constructor(private readonly movieService: MovieService,
+                private readonly KafkaService:KafkaService) {}
     
     @Get('getAllMovies')
     async getAllMovies(@Res() response) {
@@ -44,7 +46,7 @@ export class MovieController {
     @Post('addMovie')
     async createMovie(@Body() createMovieDto: CreateMovieDto, @Res() response) {
       try {
-        const newMovie = await this.movieService.createMovie(createMovieDto);
+        const newMovie = await this.KafkaService.createMovie(createMovieDto);
         return response.status(HttpStatus.CREATED).json(newMovie);
       } catch (error) {
         return response.status(HttpStatus.BAD_REQUEST).json({
@@ -87,11 +89,20 @@ export class MovieController {
     }
 
     @Get('search/:query')
-    async searchMovies(@Param('query') query: string) {
-    console.log("hiiiiiiiiiiiiii")
-    const results = await this.movieService.searchMovies(query);
-    return results;
-  }
+    async searchMovies(@Param('query') query: string,@Res() response) {
+      try{
+        const results = await this.movieService.searchMovies(query);
+        if (!results) {
+          return response.status(HttpStatus.NOT_FOUND).json({ message: 'Movie not found' });
+        }
+        return response.status(HttpStatus.OK).json(results);
 
+      }catch(error){
+        return response.status(HttpStatus.BAD_REQUEST).json({
+          message: 'Error Movie Not Found',
+          error: error.message,
+        });
+      }
+  }
   
 }

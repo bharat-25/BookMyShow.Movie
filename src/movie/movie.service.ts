@@ -5,33 +5,28 @@ import { Movie } from './schema/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 // import { KafkaService } from './kafka/kafka.service';
-import axios from 'axios';
 import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 
 @Injectable()
 export class MovieService {
-  @Client({
-    transport: Transport.KAFKA,
-    options: {
-      client: {
-        clientId: 'user',
-        brokers: ['localhost:9092'],
-      },
-      consumer: {
-        groupId: 'user-consumer' // consumer same as in micro service
-      }
-    }
-  })
-  client: ClientKafka;
+  // @Client({
+  //   transport: Transport.KAFKA,
+  //   options: {
+  //     client: {
+  //       clientId: 'user',
+  //       brokers: ['localhost:9092'],
+  //     },
+  //     consumer: {
+  //       groupId: 'user-consumer'
+  //     }
+  //   }
+  // })
+  // client: ClientKafka;
 
-  async onModuleInit() {
-    /**
-     * Here We need to subscribe to topic,
-     * so that we get response back
-     */
-    this.client.subscribeToResponseOf('new-movie-topic');
-    await this.client.connect();
-  }
+  // async onModuleInit() {
+  //   this.client.subscribeToResponseOf('new-movie-topic');
+  //   await this.client.connect();
+  // }
   constructor(@InjectModel('Movie') private movieModel: Model<Movie>) {}
   
   async getAllMovies(): Promise<Movie[]> {
@@ -42,20 +37,20 @@ export class MovieService {
     return this.movieModel.findById(id).exec();
   }
 
-  async createMovie(createMovieDto: CreateMovieDto) {
-    const createdMovie = new this.movieModel(createMovieDto);
-    // const kafkadata=this.client.send('new-movie-topic', { createdMovie });
-    // console.log(kafkadata)
-    this.client.send('new-movie-topic', { createdMovie }).subscribe(
-      (response) => {
-        console.log('Kafka message sent successfully:', response);
-      },
-      (error) => {
-        console.error('Error sending Kafka message:', error);
-      }
-    );
-    return createdMovie.save();
-  }
+  // async createMovie(createMovieDto: CreateMovieDto) {
+  //   const createdMovie = new this.movieModel(createMovieDto);
+  //   // const kafkadata=this.client.send('new-movie-topic', { createdMovie });
+  //   // console.log(kafkadata)
+  //   this.client.send('new-movie-topic', { createdMovie }).subscribe(
+  //     (response) => {
+  //       console.log('Kafka message sent successfully:', response);
+  //     },
+  //     (error) => {
+  //       console.error('Error sending Kafka message:', error);
+  //     }
+  //   );
+  //   return createdMovie.save();
+  // }
 
   async updateMovie(id: string, updateMovieDto: UpdateMovieDto) {
     return this.movieModel.findByIdAndUpdate(id, updateMovieDto, { new: true });
@@ -94,9 +89,9 @@ export class MovieService {
       ];
       const matchResult = await this.movieModel.aggregate(pipeline);
       return matchResult;
-    } catch (e) {
-      console.error('Error searching movies:', e);
-      throw new Error(e.message);
+    } catch (error) {
+      console.error('Error searching movies:', error);
+      throw new Error(error.message);
     }
   }  
 }
