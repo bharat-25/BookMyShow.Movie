@@ -29,6 +29,7 @@ export class KafkaService {
       constructor(@InjectModel('Movie') private movieModel: Model<Movie>) {}
     
       async createMovie(createMovieDto: CreateMovieDto) {
+        console.log(createMovieDto)
         const createdMovie = new this.movieModel(createMovieDto);
         this.client.send('new-movie-topic', { createdMovie }).subscribe(
           (response) => {

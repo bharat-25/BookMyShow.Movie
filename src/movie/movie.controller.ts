@@ -1,25 +1,35 @@
-import { Controller,Get , Post, Put, Delete, Body, Param, HttpStatus, Res, Query, ValidationPipe} from '@nestjs/common';
+import { Controller,Get , Post, Request,Put, Delete, Body, Param, HttpStatus, Res, Query, ValidationPipe, UseGuards} from '@nestjs/common';
 import { MovieService } from './movie.service';
 import {KafkaService} from './kafka/kafka.service'
-import { Movie } from './schema/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { MovieSearchDto } from './dto/movie-search.dto';
+import { MOVIE_RESPONSE } from './constant/constant';
+import axios from 'axios';
+import { AuthGuard } from './guard/auth.guard';
+import { AuthController } from 'src/auth/auth.controller';
 
 @Controller('movie')
 export class MovieController {
     constructor(private readonly movieService: MovieService,
-                private readonly KafkaService:KafkaService) {}
+                private readonly KafkaService:KafkaService,
+                private readonly authController: AuthController
+                ) {}
+                private readonly baseUrl = 'http://localhost:3008'
     
     @Get('getAllMovies')
     async getAllMovies(@Res() response) {
       try {
         const movies = await this.movieService.getAllMovies();
-        console.log(movies)
-        return response.status(HttpStatus.OK).json(movies);
+        // console.log(movies)
+        const Axiosresponse = await axios.get(`${this.baseUrl}/users/email-addresses`);
+        console.log("------->",Axiosresponse.data);
+        return response.status(HttpStatus.OK).json({
+          message:MOVIE_RESPONSE.GET_ALL_MOVIE,
+          movies
+        });
       } catch (error) {
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Error retrieving movies',
+          message: MOVIE_RESPONSE.ERROR_GET_ALL_MOVIE,
           error: error.message,
         });
       }
@@ -31,58 +41,105 @@ export class MovieController {
         const movie = await this.movieService.getMovieById(movieId);
         console.log(movie)
         if (!movie) {
-          return response.status(HttpStatus.NOT_FOUND).json({ message: 'Movie not found' });
+          return response.status(HttpStatus.NOT_FOUND).json({ message: MOVIE_RESPONSE.MOVIE_NOT_FOUND });
         }
-        return response.status(HttpStatus.OK).json(movie);
+        return response.status(HttpStatus.OK).json({
+          message:MOVIE_RESPONSE.GET_MOVIE_BY_ID,
+          movie
+        });
       } catch (error) {
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'Error retrieving movie',
+          message: MOVIE_RESPONSE.ERROR_MOVIE_BY_ID,
           error: error.message,
         });
       }
     }
 
-    
+    @UseGuards(AuthGuard)
     @Post('addMovie')
-    async createMovie(@Body() createMovieDto: CreateMovieDto, @Res() response) {
+    async createMovie(@Request() req,@Body() createMovieDto: CreateMovieDto, @Res() response) {
       try {
+
+        const userEmail = req.user.payload.payloadEmail;
+
+      const Isverify=await this.authController.verifyUser(userEmail);
+      console.log(Isverify)
+      if(!Isverify){
+        return response.status(HttpStatus.UNAUTHORIZED).json({
+          message:MOVIE_RESPONSE.NOT_AUTHORIZED,
+        });
+      }
+
         const newMovie = await this.KafkaService.createMovie(createMovieDto);
-        return response.status(HttpStatus.CREATED).json(newMovie);
+        const Axiosresponse = await axios.get(`${this.baseUrl}/users/email-addresses`);
+        console.log("------->",Axiosresponse.data);
+        return response.status(HttpStatus.CREATED).json({
+          message:MOVIE_RESPONSE.ADD_MOVIE,
+          newMovie
+        });
       } catch (error) {
         return response.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error creating movie',
+          message: MOVIE_RESPONSE.ERROR_ADD_MOVIE,
           error: error.message,
         });
       }
     }
   
+    @UseGuards(AuthGuard)
     @Put(':id')
-    async updateMovie(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto, @Res() response) {
+    async updateMovie(@Request() req,@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto, @Res() response) {
       try {
+        const userEmail = req.user.payload.payloadEmail;
+
+        const Isverify=await this.authController.verifyUser(userEmail);
+        console.log(Isverify)
+        if(!Isverify){
+          return response.status(HttpStatus.OK).json({
+            message:MOVIE_RESPONSE.NOT_AUTHORIZED,
+          });
+        }
+
         const updatedMovie = await this.movieService.updateMovie(id, updateMovieDto);
         if (!updatedMovie) {
-          return response.status(HttpStatus.NOT_FOUND).json({ message: 'Movie not found' });
+          return response.status(HttpStatus.NOT_FOUND).json({ message: MOVIE_RESPONSE.MOVIE_NOT_FOUND });
         }
-        return response.status(HttpStatus.OK).json(updatedMovie);
+        return response.status(HttpStatus.OK).json({
+          message:MOVIE_RESPONSE.UPDATE_MOVIE,
+          updatedMovie
+        });
       } catch (error) {
         return response.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error updating movie',
+          message: MOVIE_RESPONSE.ERROR_UPDATE_MOVIE,
           error: error.message,
         });
       }
     }
 
+    @UseGuards(AuthGuard)
     @Delete(':id')
-    async deleteMovie(@Param('id') id: string, @Res() response) {
+    async deleteMovie(@Request() req,@Param('id') id: string, @Res() response) {
       try {
+        const userEmail = req.user.payload.payloadEmail;
+
+        const Isverify=await this.authController.verifyUser(userEmail);
+        console.log(Isverify)
+        if(!Isverify){
+          return response.status(HttpStatus.OK).json({
+            message:MOVIE_RESPONSE.NOT_AUTHORIZED,
+          });
+        }
+        console.log("DELETE")
         const deletedMovie = await this.movieService.deleteMovie(id);
         if (!deletedMovie) {
-          return response.status(HttpStatus.NOT_FOUND).json({ message: 'Movie not found' });
+          return response.status(HttpStatus.NOT_FOUND).json({ message: MOVIE_RESPONSE.MOVIE_NOT_FOUND });
         }
-        return response.status(HttpStatus.OK).json(deletedMovie);
+        return response.status(HttpStatus.OK).json({
+          message:MOVIE_RESPONSE.DELETE_MOVIE,
+          deletedMovie
+        });
       } catch (error) {
         return response.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error deleting movie',
+          message: MOVIE_RESPONSE.ERROR_DELETE_MOVIE,
           error: error.message,
         });
       }
@@ -93,13 +150,16 @@ export class MovieController {
       try{
         const results = await this.movieService.searchMovies(query);
         if (!results) {
-          return response.status(HttpStatus.NOT_FOUND).json({ message: 'Movie not found' });
+          return response.status(HttpStatus.NOT_FOUND).json({ message: MOVIE_RESPONSE.MOVIE_NOT_FOUND});
         }
-        return response.status(HttpStatus.OK).json(results);
+        return response.status(HttpStatus.OK).json({
+          message:MOVIE_RESPONSE.MOVIE_FOUND,
+          results
+        });
 
       }catch(error){
         return response.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error Movie Not Found',
+          message: MOVIE_RESPONSE.MOVIE_NOT_FOUND,
           error: error.message,
         });
       }

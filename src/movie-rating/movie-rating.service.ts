@@ -5,8 +5,7 @@ import { MovieRating, MovieRatingSchema } from './schema/movie-rating.schema';
 
 @Injectable()
 export class MovieRatingService {constructor(
-    @InjectModel(MovieRating.name)
-    private readonly movieRatingModel: Model<MovieRating>,
+    @InjectModel(MovieRating.name)private readonly movieRatingModel: Model<MovieRating>,
   ) {}
 
   async addRating(movieId: string, userId: string, rating: number, comment: string) {
