@@ -25,5 +25,4 @@ export const TheaterSchema = new Schema({
   description: { type: String },
 });
 
-// Index for the location field
 TheaterSchema.index({ location: '2dsphere' });

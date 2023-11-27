@@ -34,7 +34,7 @@ export class TheaterService {
     return theater;
   }
 
-  async deleteTheater(theaterId: string): Promise<void> {
+  async deleteTheater(theaterId: string){
     const result = await this.theaterModel.findByIdAndDelete(theaterId).exec();
     if (!result) {
       throw new NotFoundException(`Theater with ID ${theaterId} not found`);
