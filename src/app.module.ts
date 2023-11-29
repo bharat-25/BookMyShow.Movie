@@ -7,12 +7,13 @@ import { TheaterModule } from './theater/theater.module';
 import { MovieRatingModule } from './movie-rating/movie-rating.module';
 import { MongooseConfigModule } from './movie/mongoose.module';
 import { ConfigModule } from '@nestjs/config';
+import { config } from './config/config';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     MovieModule,
-    MongooseModule.forRoot('mongodb+srv://bharatanand:XLfrrdbmZRqs25hC@cluster0.a5sfuz8.mongodb.net/BookMyShow_movies'),
+    MongooseModule.forRoot(config.MONGO.DB_URL),
     TheaterModule,
     MovieRatingModule,
     MongooseConfigModule 

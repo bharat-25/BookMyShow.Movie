@@ -8,7 +8,14 @@ export class AuthController {
 
   private readonly baseUrl = 'http://localhost:3008';
 
-    async verifyUser(userEmail){
+
+  /**
+ * Verify a user by checking if the user's email exists and is verified.
+ * @param {string} userEmail - The email of the user to verify.
+ * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating whether the user is verified.
+ * @throws {Error} - Throws an error if there's an issue with the verification process.
+ */
+    async verifyUser(userEmail: string): Promise<boolean>{
         try {
           const GetUser=await this.redisService.redisGet(userEmail); 
           if(GetUser){

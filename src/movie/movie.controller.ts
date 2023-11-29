@@ -4,9 +4,9 @@ import {KafkaService} from './kafka/kafka.service'
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MOVIE_RESPONSE } from './constant/constant';
-import axios from 'axios';
 import { AuthGuard } from './guard/auth.guard';
 import { AuthController } from 'src/auth/auth.controller';
+import axios from 'axios';
 
 @Controller('movie')
 export class MovieController {
@@ -16,6 +16,12 @@ export class MovieController {
                 ) {}
                 private readonly baseUrl = 'http://localhost:3008'
     
+/**
+ * Get all movies API endpoint.
+ * @returns {Object} - Returns a JSON response with the list of movies.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
+
     @Get('getAllMovies')
     async getAllMovies(@Res() response) {
       try {
@@ -35,6 +41,13 @@ export class MovieController {
       }
     }
   
+
+  /**
+ * Get movie by ID API endpoint.
+ * @param {string} movieId - The ID of the movie to retrieve.
+ * @returns {Object} - Returns a JSON response with the movie details.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
     @Get(':id')
     async getMovieById(@Param('id') movieId: string, @Res() response) {
       try {
@@ -55,11 +68,18 @@ export class MovieController {
       }
     }
 
+
+  /**
+ * Create a new movie API endpoint.
+ * @param {Object} req - The request object.
+ * @param {CreateMovieDto} createMovieDto - The data to create a new movie.
+ * @returns {Object} - Returns a JSON response with the newly created movie.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
     @UseGuards(AuthGuard)
     @Post('addMovie')
     async createMovie(@Request() req,@Body() createMovieDto: CreateMovieDto, @Res() response) {
       try {
-
         const userEmail = req.user.payload.payloadEmail;
 
       const Isverify=await this.authController.verifyUser(userEmail);
@@ -72,7 +92,7 @@ export class MovieController {
 
         const newMovie = await this.KafkaService.createMovie(createMovieDto);
         const Axiosresponse = await axios.get(`${this.baseUrl}/users/email-addresses`);
-        console.log("------->",Axiosresponse.data);
+        console.log("-->",Axiosresponse.data);
         return response.status(HttpStatus.CREATED).json({
           message:MOVIE_RESPONSE.ADD_MOVIE,
           newMovie
@@ -85,6 +105,15 @@ export class MovieController {
       }
     }
   
+
+  /**
+ * Update movie by ID API endpoint.
+ * @param {Object} req - The request object.
+ * @param {string} id - The ID of the movie to update.
+ * @param {UpdateMovieDto} updateMovieDto - The data to update the movie.
+ * @returns {Object} - Returns a JSON response with the updated movie details.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
     @UseGuards(AuthGuard)
     @Put(':id')
     async updateMovie(@Request() req,@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto, @Res() response) {
@@ -115,6 +144,14 @@ export class MovieController {
       }
     }
 
+
+  /**
+ * Delete movie by ID API endpoint.
+ * @param {Object} req - The request object.
+ * @param {string} id - The ID of the movie to delete.
+ * @returns {Object} - Returns a JSON response with details of the deleted movie.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
     @UseGuards(AuthGuard)
     @Delete(':id')
     async deleteMovie(@Request() req,@Param('id') id: string, @Res() response) {
@@ -145,6 +182,13 @@ export class MovieController {
       }
     }
 
+
+  /**
+ * Search movies API endpoint.
+ * @param {string} query - The search query for movies.
+ * @returns {Object} - Returns a JSON response with the search results.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
     @Get('search/:query')
     async searchMovies(@Param('query') query: string,@Res() response) {
       try{

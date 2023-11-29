@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { config } from '../config/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb+srv://bharatanand:XLfrrdbmZRqs25hC@cluster0.a5sfuz8.mongodb.net/BookMyShow_movies'),
+    MongooseModule.forRoot(config.MONGO.DB_URL),
   ],
 })
 export class MongooseConfigModule {}

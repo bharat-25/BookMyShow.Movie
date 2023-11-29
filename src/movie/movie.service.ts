@@ -5,7 +5,7 @@ import { Movie } from './schema/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 // import { KafkaService } from './kafka/kafka.service';
-import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+// import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 
 @Injectable()
 export class MovieService {
@@ -32,7 +32,11 @@ export class MovieService {
   async getAllMovies(): Promise<Movie[]> {
     return this.movieModel.find().exec();
   }
-
+/**
+ * Get a movie by its ID from the database.
+ * @param {string} id - The ID of the movie to retrieve.
+ * @returns {Promise<Movie>} - A promise that resolves to a Movie object.
+ */
   async getMovieById(id: string): Promise<Movie>{
     return this.movieModel.findById(id).exec();
   }
@@ -52,15 +56,35 @@ export class MovieService {
   //   return createdMovie.save();
   // }
 
+
+/**
+ * Update a movie in the database by its ID.
+ * @param {string} id - The ID of the movie to update.
+ * @param {UpdateMovieDto} updateMovieDto - The data to update the movie.
+ * @returns {Promise<Movie>} - A promise that resolves to the updated Movie object.
+ */
   async updateMovie(id: string, updateMovieDto: UpdateMovieDto) {
     return this.movieModel.findByIdAndUpdate(id, updateMovieDto, { new: true });
   }
 
+
+/**
+ * Delete a movie from the database by its ID.
+ * @param {string} id - The ID of the movie to delete.
+ * @returns {Promise<Movie|null>} - A promise that resolves to the deleted Movie object, or null if not found.
+ */
   async deleteMovie(id: string): Promise<Movie | null> {
     const deleted = await this.movieModel.findByIdAndRemove(id).exec();
     return deleted;
   }
 
+
+/**
+ * Search movies in the database based on a query using text search.
+ * @param {string} query - The search query for movies.
+ * @returns {Promise<Movie[]>} - A promise that resolves to an array of matched Movie objects.
+ * @throws {Error} - Throws an error if there's an issue searching for movies.
+ */
   async searchMovies(query: string): Promise<Movie[]>{
     try {
       const pipeline = [
