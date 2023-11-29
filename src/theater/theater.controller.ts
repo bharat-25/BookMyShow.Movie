@@ -23,6 +23,13 @@ export class TheaterController {
   constructor(private readonly theaterService: TheaterService,
               private readonly authController: AuthController) {}
 
+
+/**
+ * Get all theaters API endpoint.
+ * @param {Object} response - The response object.
+ * @returns {Promise<ITheater[]>} - A promise that resolves to an array of theater objects.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Get('allTheater')
   async getAllTheaters(@Res() response): Promise<ITheater[]> {
     try {
@@ -40,6 +47,14 @@ export class TheaterController {
     }
   }
 
+
+/**
+ * Get theater by ID API endpoint.
+ * @param {string} theaterId - The ID of the theater to retrieve.
+ * @param {Object} response - The response object.
+ * @returns {Promise<Object>} - A promise that resolves to a JSON response with the theater details.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Get(':id')
   async getTheaterById(@Param('id') theaterId: string,@Res() response){
     try{
@@ -60,6 +75,15 @@ export class TheaterController {
     }
   }
   
+
+/**
+ * Add a new theater API endpoint.
+ * @param {Object} req - The request object.
+ * @param {CreateTheaterDto} createTheaterDto - The data to create a new theater.
+ * @param {Object} response - The response object.
+ * @returns {Promise<Object>} - A promise that resolves to a JSON response with the newly created theater details.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @UseGuards(AuthGuard)
   @Post('addTheater')
   async addTheater(@Request() req,@Body() createTheaterDto: CreateTheaterDto,@Res() response) {
@@ -88,6 +112,16 @@ export class TheaterController {
     }
   }
 
+
+/**
+ * Update theater by ID API endpoint.
+ * @param {Object} req - The request object.
+ * @param {string} theaterId - The ID of the theater to update.
+ * @param {ITheater} updatedTheater - The data to update the theater.
+ * @param {Object} response - The response object.
+ * @returns {Promise<Object>} - A promise that resolves to a JSON response with the updated theater details.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Put(':id')
   async updateTheater(@Request() req,@Param('id') theaterId: string,@Body() updatedTheater: ITheater,@Res() response) {
     try{
@@ -117,6 +151,15 @@ export class TheaterController {
     }
   }
 
+
+/**
+ * Delete theater by ID API endpoint.
+ * @param {Object} req - The request object.
+ * @param {string} theaterId - The ID of the theater to delete.
+ * @param {Object} response - The response object.
+ * @returns {Promise<Object>} - A promise that resolves to a JSON response indicating the success of the deletion.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Delete(':id')
   async deleteTheater(@Request() req,@Param('id') theaterId: string, @Res() response) {
     try{

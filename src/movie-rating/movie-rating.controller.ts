@@ -15,6 +15,15 @@ export class MovieRatingController {
 
   ) {}
 
+
+/**
+ * Add a new rating for a movie API endpoint.
+ * @param {Object} req - The request object.
+ * @param {MovieRatingDto} ratingDto - The data to add a new rating.
+ * @param {Object} response - The response object.
+ * @returns {Object} - Returns a JSON response with the newly added rating data.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Post('addRating')
   @UseGuards(AuthGuard)
   async addRating(@Request() req,@Body() ratingDto: MovieRatingDto,@Res() response,) {
@@ -45,6 +54,16 @@ export class MovieRatingController {
     }
   }
 
+
+/**
+ * Update an existing rating for a movie API endpoint.
+ * @param {string} id - The ID of the rating to update.
+ * @param {MovieRatingDto} ratingDto - The data to update the rating.
+ * @param {Object} req - The request object.
+ * @param {Object} response - The response object.
+ * @returns {Object} - Returns a JSON response with the updated rating data.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Put(':id/updateRating')
   @UseGuards(AuthGuard)
   async updateRating(@Param('id') id: string,@Body() ratingDto: MovieRatingDto,@Request() req,@Res() response) {
@@ -79,6 +98,16 @@ export class MovieRatingController {
     }
   }
 
+
+
+/**
+ * Delete a rating for a movie API endpoint.
+ * @param {string} id - The ID of the rating to delete.
+ * @param {Object} req - The request object.
+ * @param {Object} response - The response object.
+ * @returns {Object} - Returns a JSON response with details of the deleted rating.
+ * @throws {Object} - Returns an error response if there's an issue with the request.
+ */
   @Delete(':id/deleteRating')
   @UseGuards(AuthGuard)
   async deleteRating(@Param('id') id: string, @Request() req, @Res() response) {

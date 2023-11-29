@@ -7,10 +7,11 @@ import { KafkaService } from './kafka/kafka.service';
 import { RedisModule } from '../auth/redis/redis.module';
 import { AuthModule } from '../auth/auth.module';
 import { AuthController } from 'src/auth/auth.controller';
+import { config } from '../config/config';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'Movie', schema: MovieSchema }]),
+    MongooseModule.forFeature([{ name: config.MONGO.MOVIE_DB_NAME, schema: MovieSchema }]),
     RedisModule,
     AuthModule
   ],
